@@ -18,6 +18,7 @@ import java.util.Optional;
 public class AccountService {
 
     private final AccountRepository accountRepository;
+    private final AtmService atmService;
 
     public ResponseEntity<BalanceResponse> checkBalance(BalanceRequest balanceRequest) {
 
@@ -70,8 +71,7 @@ public class AccountService {
             if (withdrawalRequest.getPin() == accountFound.getPin()) {
 
                 if (withdrawalRequest.getAmountToWithdraw() < accountFound.getOpeningBalance()) {
-                    // TODO: CODE for withdrawal
-                    return null;
+                    return atmService.withdraw(withdrawalRequest.getId(), withdrawalRequest.getAccountNumber(),withdrawalRequest.getAmountToWithdraw());
                 } else {
 
                     String message = "The amount that you selected exceeds available balance.";
