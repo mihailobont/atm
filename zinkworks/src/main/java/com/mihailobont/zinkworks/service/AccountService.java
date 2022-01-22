@@ -1,9 +1,6 @@
 package com.mihailobont.zinkworks.service;
 
-import com.mihailobont.zinkworks.dto.BalanceRequest;
-import com.mihailobont.zinkworks.dto.BalanceResponse;
-import com.mihailobont.zinkworks.dto.WithdrawalRequest;
-import com.mihailobont.zinkworks.dto.WithdrawalResponse;
+import com.mihailobont.zinkworks.dto.*;
 import com.mihailobont.zinkworks.modal.Account;
 import com.mihailobont.zinkworks.repository.AccountRepository;
 import lombok.AllArgsConstructor;
@@ -11,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.util.Optional;
 
 @Service
@@ -19,6 +17,12 @@ public class AccountService {
 
     private final AccountRepository accountRepository;
     private final AtmService atmService;
+
+    @PostConstruct
+    private void init() {
+        accountRepository.save(new Account(123456789L, 1234, 800L, 200L));
+        accountRepository.save(new Account(987654321L, 4321, 1230L, 150L));
+    }
 
     public ResponseEntity<BalanceResponse> checkBalance(BalanceRequest balanceRequest) {
 
@@ -71,7 +75,23 @@ public class AccountService {
             if (withdrawalRequest.getPin() == accountFound.getPin()) {
 
                 if (withdrawalRequest.getAmountToWithdraw() < accountFound.getOpeningBalance()) {
-                    return atmService.withdraw(withdrawalRequest.getId(), withdrawalRequest.getAccountNumber(),withdrawalRequest.getAmountToWithdraw());
+
+                    int withdrawDone = updateAccountForWithdraw(accountFound.getId(),
+                            accountFound.getOpeningBalance() - withdrawalRequest.getAmountToWithdraw(),
+                            accountFound.getOverdraft() + withdrawalRequest.getAmountToWithdraw());
+
+                    if (withdrawDone == 1) {
+                        return atmService.withdraw(withdrawalRequest.getId(), withdrawalRequest.getAccountNumber(),
+                                withdrawalRequest.getAmountToWithdraw());
+                    } else {
+
+                        String message = "The withdraw was not successful.";
+
+                        WithdrawalResponse withdrawalResponse = new WithdrawalResponse(message);
+
+                        return ResponseEntity.status(HttpStatus.OK).body(withdrawalResponse);
+                    }
+
                 } else {
 
                     String message = "The amount that you selected exceeds available balance.";
@@ -95,5 +115,27 @@ public class AccountService {
 
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(withdrawalResponse);
         }
+    }
+
+    private int updateAccountForWithdraw(Long id, Long openingBalance, Long overdraft) {
+        return accountRepository.updateAccountForWithdraw(id, openingBalance, overdraft);
+    }
+
+    public ResponseEntity<AddAccountResponse> save(AddAccountRequest addAccountRequest) {
+
+        boolean accountExists = accountRepository.findByAccountNumber(addAccountRequest.getAccountNumber());
+
+        if (accountExists) {
+            return ResponseEntity.status(HttpStatus.OK).body(new AddAccountResponse(new Account(), "Account is already existing."));
+        }
+
+        Account accountSaved = accountRepository.save(new Account(
+                addAccountRequest.getAccountNumber(),
+                addAccountRequest.getPin(),
+                addAccountRequest.getOpeningBalance(),
+                addAccountRequest.getOverdraft()
+        ));
+
+        return ResponseEntity.status(HttpStatus.OK).body(new AddAccountResponse(accountSaved, "Account added successfully."));
     }
 }

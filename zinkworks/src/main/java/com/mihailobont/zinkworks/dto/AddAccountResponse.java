@@ -1,5 +1,6 @@
 package com.mihailobont.zinkworks.dto;
 
+import com.mihailobont.zinkworks.modal.Account;
 import lombok.*;
 
 @Getter
@@ -8,10 +9,9 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-public class WithdrawalRequest {
+public class AddAccountResponse {
 
-    private Long id;
-    private Long accountNumber;
-    private Long amountToWithdraw;
-    private int pin;
+    private Account account;
+    private String message;
+
 }

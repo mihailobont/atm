@@ -16,6 +16,6 @@ public interface AtmRepository extends JpaRepository<Atm, Long> {
     @Query(value = "UPDATE Atm atm " +
             "SET atm.fiftyEurosBills = :fifty, atm.twentyEurosBills = :twenty, atm.tenEurosBills = :ten, " +
             "atm.fiveEurosBills = :five WHERE atm.id = :atmId")
-    boolean withdraw(@Param("atmId") Long atmId, @Param("fifty") Long fifty, @Param("twenty") Long twenty,
+    int withdraw(@Param("atmId") Long atmId, @Param("fifty") Long fifty, @Param("twenty") Long twenty,
                      @Param("ten") Long ten, @Param("five") Long five);
 }

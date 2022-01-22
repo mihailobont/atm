@@ -31,4 +31,10 @@ public class Account {
     @Column(name = "overdraft")
     private Long overdraft;
 
+    public Account(Long accountNumber, int pin, Long openingBalance, Long overdraft) {
+        this.accountNumber = accountNumber;
+        this.pin = pin;
+        this.openingBalance = openingBalance;
+        this.overdraft = overdraft;
+    }
 }

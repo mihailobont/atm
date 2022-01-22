@@ -1,13 +1,17 @@
 package com.mihailobont.zinkworks.service;
 
+import com.mihailobont.zinkworks.dto.AddAtmRequest;
+import com.mihailobont.zinkworks.dto.AddAtmResponse;
 import com.mihailobont.zinkworks.dto.WithdrawalResponse;
 import com.mihailobont.zinkworks.modal.Atm;
+import com.mihailobont.zinkworks.repository.AccountRepository;
 import com.mihailobont.zinkworks.repository.AtmRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.util.Optional;
 
 @Service
@@ -20,16 +24,20 @@ public class AtmService {
     private final int FIVE_NOTES = 3;
 
     private final AtmRepository atmRepository;
+    private final AccountRepository accountRepository;
+
+    @PostConstruct
+    private void init(){
+        atmRepository.save(new Atm());
+    }
 
     public ResponseEntity<WithdrawalResponse> withdraw(Long atmId, Long accountNumber, Long amountToWithdraw) {
-
 
         Long[] notesAvailable = returnNumberOfNotesAvailable(atmId);
 
         Long sumOfMoneyAvailable = 50L * notesAvailable[FIFTY_NOTES] + 20L * notesAvailable[TWENTY_NOTES] +
                 10L * notesAvailable[TEN_NOTES] + 5L * notesAvailable[FIVE_NOTES];
 
-        // TODO: ADD FUNCTIONALITY FOR CHECKING THE AMOUNT OF THE ACCOUNT
         if (sumOfMoneyAvailable < amountToWithdraw){
             String message = "Sorry, the ATM does not have that much money.";
             WithdrawalResponse withdrawalResponse = new WithdrawalResponse(message);
@@ -38,15 +46,14 @@ public class AtmService {
 
         Long[] notesToWithdraw = countNotes(atmId, amountToWithdraw);
 
-        boolean withdrawSuccess = atmRepository.withdraw(atmId,
+        int withdrawSuccess = atmRepository.withdraw(atmId,
                 notesAvailable[FIFTY_NOTES] - notesToWithdraw[FIFTY_NOTES],
                 notesAvailable[TWENTY_NOTES] - notesToWithdraw[TWENTY_NOTES],
                 notesAvailable[TEN_NOTES] - notesToWithdraw[TEN_NOTES],
                 notesAvailable[FIVE_NOTES] - notesToWithdraw[FIVE_NOTES]);
 
+        if(withdrawSuccess == 1){
 
-
-        if(withdrawSuccess){
             String message = String.format("Withdraw done with success! \n" + "The value of the withdraw from the " +
                     "account: %d is: %d.", accountNumber, amountToWithdraw);
 
@@ -66,25 +73,25 @@ public class AtmService {
     private Long[] countNotes(Long atmId, Long amountToWithdraw) {
 
         Double amountToWithdrawAsDouble = amountToWithdraw.doubleValue();
-        Long[] notesToWithdraw = new Long[4];
+        Long[] notesToWithdraw = {0L, 0L, 0L, 0L};
         Long[] notesAvailable = returnNumberOfNotesAvailable(atmId);
 
-        while (((amountToWithdrawAsDouble / 50.0) > 1.0) && (notesAvailable[FIFTY_NOTES] > 0)) {
+        while (((amountToWithdrawAsDouble / 50.0) >= 1.0) && (notesAvailable[FIFTY_NOTES] > 0)) {
             notesToWithdraw[FIFTY_NOTES]++;
             amountToWithdrawAsDouble = amountToWithdrawAsDouble - 50.0;
         }
 
-        while (((amountToWithdrawAsDouble / 20.0) > 1.0) && (notesAvailable[TWENTY_NOTES] > 0)) {
+        while (((amountToWithdrawAsDouble / 20.0) >= 1.0) && (notesAvailable[TWENTY_NOTES] > 0)) {
             notesToWithdraw[TWENTY_NOTES]++;
             amountToWithdrawAsDouble = amountToWithdrawAsDouble - 20.0;
         }
 
-        while (((amountToWithdrawAsDouble / 10.0) > 1.0) && (notesAvailable[TEN_NOTES] > 0)) {
+        while (((amountToWithdrawAsDouble / 10.0) >= 1.0) && (notesAvailable[TEN_NOTES] > 0)) {
             notesToWithdraw[TEN_NOTES]++;
             amountToWithdrawAsDouble = amountToWithdrawAsDouble - 10.0;
         }
 
-        while (((amountToWithdrawAsDouble / 5.0) > 1.0) && (notesAvailable[FIVE_NOTES] > 0)) {
+        while (((amountToWithdrawAsDouble / 5.0) >= 1.0) && (notesAvailable[FIVE_NOTES] > 0)) {
             notesToWithdraw[FIVE_NOTES]++;
             amountToWithdrawAsDouble = amountToWithdrawAsDouble - 5.0;
         }
@@ -98,5 +105,10 @@ public class AtmService {
         Atm atmFound = atm.get();
         Long[] numberOfNotes = {atmFound.getFiftyEurosBills(), atmFound.getTwentyEurosBills(), atmFound.getTenEurosBills(), atmFound.getFiveEurosBills()};
         return numberOfNotes;
+    }
+
+    public ResponseEntity<AddAtmResponse> save(AddAtmRequest addAtmRequest) {
+       Atm atm = atmRepository.save(new Atm());
+       return ResponseEntity.status(HttpStatus.OK).body(new AddAtmResponse(atm, "Atm was added to the path"));
     }
 }

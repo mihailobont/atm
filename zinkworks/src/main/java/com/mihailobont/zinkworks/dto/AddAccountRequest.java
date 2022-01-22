@@ -8,10 +8,11 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-public class WithdrawalRequest {
+public class AddAccountRequest {
 
-    private Long id;
     private Long accountNumber;
-    private Long amountToWithdraw;
     private int pin;
+    private Long openingBalance;
+    private Long overdraft;
+
 }

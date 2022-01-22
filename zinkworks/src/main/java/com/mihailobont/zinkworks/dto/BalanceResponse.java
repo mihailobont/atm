@@ -1,14 +1,13 @@
 package com.mihailobont.zinkworks.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
 @Setter
+@EqualsAndHashCode
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString
 public class BalanceResponse{
 
     private Long accountNumber;

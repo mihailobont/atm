@@ -20,7 +20,7 @@ public class Atm {
     @Transient
     private final Long NUMBER_OF_TEN_BILLS = 30L;
     @Transient
-    private final Long NUMBER_OF_FIVE_BILLS = 10L;
+    private final Long NUMBER_OF_FIVE_BILLS = 20L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

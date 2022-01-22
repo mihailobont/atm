@@ -1,8 +1,12 @@
 package com.mihailobont.zinkworks.dto;
 
-import lombok.NoArgsConstructor;
+import lombok.*;
 
+@Getter
+@Setter
+@EqualsAndHashCode
 @NoArgsConstructor
+@ToString
 public class WithdrawalResponse {
 
     private Long accountNumber;
